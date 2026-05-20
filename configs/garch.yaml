@@ -1,0 +1,10 @@
+# GARCH(1,1) per-asset configuration.
+# Distributions are AIC-selected from this candidate set.
+p: 1
+q: 1
+mean: "Constant"
+distributions:
+  - "normal"
+  - "t"
+  - "ged"
+rescale: true
