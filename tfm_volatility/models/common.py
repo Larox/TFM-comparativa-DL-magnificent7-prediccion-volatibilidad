@@ -25,8 +25,24 @@ def prepare_panel(panel: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-_TIME_VARYING_UNKNOWN = ["log_return", "rv", "log_rv", "VIX", "FED_FUNDS", "CPI"]
-_TIME_VARYING_KNOWN = ["time_idx", "dow", "month", "dom"]
+# Feature partitioning constraints:
+# - pytorch-forecasting DeepAR requires encoder and decoder variables to match
+#   apart from the target, so we keep `time_varying_unknown_reals` empty.
+# - Macros (VIX, FED_FUNDS, CPI) are slow-moving over our 21d horizons; treating
+#   them as "known" is a standard academic simplification and is what allows
+#   both DeepAR and TFT to consume the same TimeSeriesDataSet.
+# - The target `log_rv` carries past realized volatility, so we do not need
+#   `log_return` or `rv` as separate features.
+_TIME_VARYING_UNKNOWN: list[str] = ["log_rv"]  # target itself is required by DeepAR
+_TIME_VARYING_KNOWN = [
+    "time_idx",
+    "dow",
+    "month",
+    "dom",
+    "VIX",
+    "FED_FUNDS",
+    "CPI",
+]
 
 
 def build_datasets(
