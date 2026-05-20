@@ -51,3 +51,26 @@ def download_ohlcv(
     return df[
         ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]
     ]
+
+
+def download_fred(
+    series: dict[str, str],
+    start: dt.date,
+    end: dt.date,
+    api_key: str,
+) -> pd.DataFrame:
+    """Download FRED series. `series` maps a friendly name -> FRED series ID.
+
+    Returns a long DataFrame with columns: date, series, value.
+    """
+    from fredapi import Fred
+
+    fred = Fred(api_key=api_key)
+    frames: list[pd.DataFrame] = []
+    for name, sid in series.items():
+        s = fred.get_series(sid, observation_start=start, observation_end=end)
+        sub = s.rename("value").reset_index().rename(columns={"index": "date"})
+        sub["series"] = name
+        sub["date"] = pd.to_datetime(sub["date"]).dt.tz_localize(None).dt.date
+        frames.append(sub[["date", "series", "value"]])
+    return pd.concat(frames, ignore_index=True)
