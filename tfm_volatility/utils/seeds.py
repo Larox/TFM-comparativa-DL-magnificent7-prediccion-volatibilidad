@@ -3,6 +3,7 @@
 Torch and lightning are imported lazily so that the function works in
 environments where they are not installed (e.g. pure-data tests).
 """
+
 from __future__ import annotations
 
 import os

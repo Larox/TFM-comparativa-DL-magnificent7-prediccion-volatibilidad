@@ -5,6 +5,7 @@ Activities A1.1 + A1.2 from memoria §3.3.2.
 Usage:
     uv run scripts/01_download_data.py [--force]
 """
+
 from __future__ import annotations
 
 import argparse

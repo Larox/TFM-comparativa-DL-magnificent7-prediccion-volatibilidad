@@ -13,6 +13,7 @@ def test_set_global_seed_makes_numpy_reproducible():
 
 def test_set_global_seed_makes_python_random_reproducible():
     import random
+
     set_global_seed(42)
     a = [random.random() for _ in range(5)]
     set_global_seed(42)

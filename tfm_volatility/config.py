@@ -3,6 +3,7 @@
 These values mirror the commitments made in `master_ai_thesis/memoria/03_objetivos_metodologia.md`.
 Changing them changes the thesis — touch with care.
 """
+
 from __future__ import annotations
 
 import datetime as dt

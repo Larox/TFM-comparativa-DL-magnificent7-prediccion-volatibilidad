@@ -6,6 +6,7 @@ Writes a Parquet snapshot and a JSON manifest to data/processed/.
 Usage:
     uv run scripts/02_build_dataset.py
 """
+
 from __future__ import annotations
 
 import datetime as dt

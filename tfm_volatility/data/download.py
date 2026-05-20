@@ -1,4 +1,5 @@
 """Data downloaders for OHLCV (yfinance) and macro series (FRED)."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -48,9 +49,7 @@ def download_ohlcv(
     df = pd.concat(frames, ignore_index=True)
     df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None).dt.date
     df = df.dropna(subset=["close"]).reset_index(drop=True)
-    return df[
-        ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]
-    ]
+    return df[["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]]
 
 
 def download_fred(

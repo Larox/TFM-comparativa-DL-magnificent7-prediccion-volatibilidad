@@ -5,6 +5,7 @@ The hold-out gate enforces that 2025 data is loaded only with an explicit
 opt-in: passing `confirm=True` to `load_holdout()`, OR setting the env var
 `TFM_HOLDOUT_OK=1` for scripts.
 """
+
 from __future__ import annotations
 
 import os

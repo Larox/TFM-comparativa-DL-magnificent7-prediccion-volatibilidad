@@ -1,4 +1,5 @@
 """Test that config constants match the commitments in memoria Cap. 3."""
+
 import datetime as dt
 
 from tfm_volatility import config
@@ -17,8 +18,8 @@ def test_fred_series_ids():
 
 
 def test_period_2018_to_2025():
-    assert config.START_DATE == dt.date(2018, 1, 1)
-    assert config.END_DATE == dt.date(2025, 12, 31)
+    assert dt.date(2018, 1, 1) == config.START_DATE
+    assert dt.date(2025, 12, 31) == config.END_DATE
 
 
 def test_rv_window_is_21_business_days():
@@ -26,7 +27,7 @@ def test_rv_window_is_21_business_days():
 
 
 def test_holdout_starts_2025():
-    assert config.HOLDOUT_START == dt.date(2025, 1, 1)
+    assert dt.date(2025, 1, 1) == config.HOLDOUT_START
 
 
 def test_default_seed_is_42():

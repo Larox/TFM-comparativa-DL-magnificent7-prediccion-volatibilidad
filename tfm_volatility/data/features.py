@@ -4,6 +4,7 @@ The stock panel uses the US business-day calendar (NYSE-ish, via pandas bdate_ra
 Macro series are forward-filled to that calendar, so monthly CPI is repeated every
 business day until the next release.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -13,9 +14,7 @@ import pandas as pd
 from tfm_volatility.data.rv import compute_log_returns, compute_realized_volatility
 
 
-def align_macro_to_calendar(
-    macro: pd.DataFrame, calendar: Iterable
-) -> pd.DataFrame:
+def align_macro_to_calendar(macro: pd.DataFrame, calendar: Iterable) -> pd.DataFrame:
     """Reindex each series in `macro` onto `calendar` (business days), forward-filling."""
     cal_idx = pd.Index(pd.to_datetime(list(calendar))).date
     cal_idx = pd.Index(cal_idx, name="date")
@@ -24,9 +23,7 @@ def align_macro_to_calendar(
         s = sub.set_index("date")["value"].sort_index()
         s.index = pd.Index(pd.to_datetime(s.index).date, name="date")
         s = s.reindex(cal_idx).ffill()
-        out.append(
-            pd.DataFrame({"date": s.index, "series": name, "value": s.values})
-        )
+        out.append(pd.DataFrame({"date": s.index, "series": name, "value": s.values}))
     return pd.concat(out, ignore_index=True)
 
 

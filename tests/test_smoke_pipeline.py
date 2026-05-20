@@ -1,4 +1,5 @@
 """End-to-end OE1 smoke test. Runs against the latest processed snapshot."""
+
 import datetime as dt
 import glob
 from pathlib import Path

@@ -1,4 +1,5 @@
 """Parquet snapshot I/O + JSON manifest for reproducibility."""
+
 from __future__ import annotations
 
 import datetime as dt
