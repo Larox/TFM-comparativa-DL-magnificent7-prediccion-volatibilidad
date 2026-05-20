@@ -34,3 +34,37 @@ def test_hln_correction_applied_when_horizon_gt_1():
     res_h5 = diebold_mariano(target, pred_a, pred_b, horizon=5)
     assert abs(res_h5["dm_stat_hln"]) <= abs(res_h1["dm_stat_hln"]) + 1e-9
     assert res_h5["correction_factor"] < 1.0
+
+
+def test_run_dm_batch_returns_one_row_per_pair_horizon_scope():
+    from tfm_volatility.eval.dm_test import run_dm_batch
+
+    rng = np.random.default_rng(0)
+    rows = []
+    for model in ("garch", "deepar", "tft"):
+        for tkr in ("AAPL", "MSFT"):
+            for h in (1, 5, 21):
+                for i in range(50):
+                    target = 0.02 + 0.005 * rng.normal()
+                    pred = target + (0.001 if model == "tft" else 0.003) * rng.normal()
+                    rows.append(
+                        {
+                            "date": pd.Timestamp("2025-01-02") + pd.Timedelta(days=i),
+                            "ticker": tkr,
+                            "horizon": h,
+                            "prediction": pred,
+                            "target": target,
+                            "model": model,
+                            "seed": 42,
+                            "partition": "holdout",
+                        }
+                    )
+    preds = pd.DataFrame(rows)
+
+    out = run_dm_batch(
+        preds, pairs=[("tft", "garch"), ("tft", "deepar"), ("deepar", "garch")]
+    )
+    # 3 pairs * 3 horizons * (2 per-asset + 1 pooled) = 27 rows
+    assert len(out) == 27
+    assert set(out["scope"]) == {"AAPL", "MSFT", "pooled"}
+    assert set(out["horizon"]) == {1, 5, 21}

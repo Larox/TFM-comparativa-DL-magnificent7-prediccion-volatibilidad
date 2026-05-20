@@ -67,3 +67,75 @@ def diebold_mariano(
         "n": int(n),
         "correction_factor": factor,
     }
+
+
+def run_dm_batch(
+    predictions: pd.DataFrame,
+    pairs: list[tuple[str, str]],
+    *,
+    seed_aggregation: str = "first",
+) -> pd.DataFrame:
+    """Run DM test for every (pair, horizon, scope) where scope is each ticker + 'pooled'.
+
+    `seed_aggregation`:
+        - 'first' keeps the lowest seed only.
+        - 'mean' averages predictions across seeds before testing.
+    """
+    if seed_aggregation == "first":
+        first_seed = sorted(predictions["seed"].unique())[0]
+        preds = predictions[predictions["seed"] == first_seed].copy()
+    elif seed_aggregation == "mean":
+        keys = ["date", "ticker", "horizon", "model", "partition"]
+        preds = (
+            predictions.groupby(keys, as_index=False)
+            .agg({"prediction": "mean", "target": "mean"})
+        )
+    else:
+        raise ValueError(f"Unknown seed_aggregation: {seed_aggregation}")
+
+    tickers = sorted(preds["ticker"].unique())
+    horizons = sorted(preds["horizon"].unique())
+    rows: list[dict] = []
+
+    for model_a, model_b in pairs:
+        for h in horizons:
+            sub = preds[preds["horizon"] == h]
+            wide = (
+                sub.pivot_table(
+                    index=["date", "ticker"],
+                    columns="model",
+                    values=["prediction", "target"],
+                )
+                .reset_index()
+            )
+            if (
+                model_a not in wide["prediction"].columns
+                or model_b not in wide["prediction"].columns
+            ):
+                continue
+            for scope in tickers + ["pooled"]:
+                if scope == "pooled":
+                    slice_ = wide
+                else:
+                    slice_ = wide[wide["ticker"] == scope]
+                if len(slice_) < 5:
+                    continue
+                try:
+                    res = diebold_mariano(
+                        slice_["target"][model_a],
+                        slice_["prediction"][model_a],
+                        slice_["prediction"][model_b],
+                        horizon=int(h),
+                    )
+                except ValueError:
+                    continue
+                rows.append(
+                    {
+                        "model_a": model_a,
+                        "model_b": model_b,
+                        "horizon": int(h),
+                        "scope": scope,
+                        **res,
+                    }
+                )
+    return pd.DataFrame(rows)
