@@ -9,10 +9,10 @@ from __future__ import annotations
 import os
 
 import torch
+from lightning.pytorch import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
 from pytorch_forecasting import DeepAR, TimeSeriesDataSet
 from pytorch_forecasting.metrics import NormalDistributionLoss
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
 
 
 def pick_device() -> str:

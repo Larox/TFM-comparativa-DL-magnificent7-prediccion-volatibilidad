@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 pf = pytest.importorskip("pytorch_forecasting")
-pl = pytest.importorskip("pytorch_lightning")
+lp = pytest.importorskip("lightning.pytorch")
 
 from tfm_volatility.models.common import build_datasets, prepare_panel
 from tfm_volatility.models.deepar import build_deepar, build_trainer
@@ -49,4 +49,4 @@ def test_build_trainer_returns_pl_trainer(tmp_path):
         gradient_clip_val=1.0,
         log_dir=str(tmp_path),
     )
-    assert isinstance(trainer, pl.Trainer)
+    assert isinstance(trainer, lp.Trainer)
