@@ -40,7 +40,7 @@ def test_rmse_matches_manual_calculation():
 
     rv = pd.Series([0.02, 0.04, 0.03])
     pred = pd.Series([0.025, 0.035, 0.03])
-    expected = float(np.sqrt(((0.005**2 + 0.005**2 + 0.0**2)) / 3))
+    expected = float(np.sqrt((0.005**2 + 0.005**2 + 0.0**2) / 3))
     assert rmse(rv, pred) == pytest.approx(expected)
 
 

@@ -61,9 +61,7 @@ def test_run_dm_batch_returns_one_row_per_pair_horizon_scope():
                     )
     preds = pd.DataFrame(rows)
 
-    out = run_dm_batch(
-        preds, pairs=[("tft", "garch"), ("tft", "deepar"), ("deepar", "garch")]
-    )
+    out = run_dm_batch(preds, pairs=[("tft", "garch"), ("tft", "deepar"), ("deepar", "garch")])
     # 3 pairs * 3 horizons * (2 per-asset + 1 pooled) = 27 rows
     assert len(out) == 27
     assert set(out["scope"]) == {"AAPL", "MSFT", "pooled"}

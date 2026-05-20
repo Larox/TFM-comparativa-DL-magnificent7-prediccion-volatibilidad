@@ -21,6 +21,11 @@ results/
 checkpoints/
 lightning_logs/
 
+# Long-running runner logs
+runs.log
+runs*.log
+nohup.out
+
 # Notebooks scratch
 notebooks/.ipynb_checkpoints/
 notebooks/*-scratch.ipynb

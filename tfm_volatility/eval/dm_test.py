@@ -48,10 +48,7 @@ def diebold_mariano(
     gamma_0 = _autocov(d, 0)
     var = gamma_0 + 2.0 * sum(_autocov(d, k) for k in range(1, horizon))
     var_d_bar = var / n
-    if var_d_bar <= 0:
-        dm_stat = 0.0
-    else:
-        dm_stat = d_bar / np.sqrt(var_d_bar)
+    dm_stat = 0.0 if var_d_bar <= 0 else d_bar / np.sqrt(var_d_bar)
 
     correction = (n + 1 - 2 * horizon + horizon * (horizon - 1) / n) / n
     correction = max(correction, 0.0)
@@ -86,9 +83,8 @@ def run_dm_batch(
         preds = predictions[predictions["seed"] == first_seed].copy()
     elif seed_aggregation == "mean":
         keys = ["date", "ticker", "horizon", "model", "partition"]
-        preds = (
-            predictions.groupby(keys, as_index=False)
-            .agg({"prediction": "mean", "target": "mean"})
+        preds = predictions.groupby(keys, as_index=False).agg(
+            {"prediction": "mean", "target": "mean"}
         )
     else:
         raise ValueError(f"Unknown seed_aggregation: {seed_aggregation}")
@@ -100,24 +96,18 @@ def run_dm_batch(
     for model_a, model_b in pairs:
         for h in horizons:
             sub = preds[preds["horizon"] == h]
-            wide = (
-                sub.pivot_table(
-                    index=["date", "ticker"],
-                    columns="model",
-                    values=["prediction", "target"],
-                )
-                .reset_index()
-            )
+            wide = sub.pivot_table(
+                index=["date", "ticker"],
+                columns="model",
+                values=["prediction", "target"],
+            ).reset_index()
             if (
                 model_a not in wide["prediction"].columns
                 or model_b not in wide["prediction"].columns
             ):
                 continue
             for scope in tickers + ["pooled"]:
-                if scope == "pooled":
-                    slice_ = wide
-                else:
-                    slice_ = wide[wide["ticker"] == scope]
+                slice_ = wide if scope == "pooled" else wide[wide["ticker"] == scope]
                 if len(slice_) < 5:
                     continue
                 try:

@@ -30,12 +30,6 @@ def compute_metrics_long(predictions: pd.DataFrame) -> pd.DataFrame:
 def summarize_across_seeds(metrics_long: pd.DataFrame) -> pd.DataFrame:
     """Collapse the seed dimension to mean +/- std per (model, ticker, horizon, partition)."""
     keep = ["model", "ticker", "horizon", "partition"]
-    agg = (
-        metrics_long.groupby(keep)
-        .agg({m: ["mean", "std"] for m in _METRICS})
-        .reset_index()
-    )
-    agg.columns = [
-        f"{a}_{b}" if b else a for a, b in agg.columns.to_flat_index()
-    ]
+    agg = metrics_long.groupby(keep).agg({m: ["mean", "std"] for m in _METRICS}).reset_index()
+    agg.columns = [f"{a}_{b}" if b else a for a, b in agg.columns.to_flat_index()]
     return agg

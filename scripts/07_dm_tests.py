@@ -23,9 +23,7 @@ _PAIRS = [("tft", "garch"), ("tft", "deepar"), ("deepar", "garch")]
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--partition", choices=["val", "holdout"], default="holdout"
-    )
+    parser.add_argument("--partition", choices=["val", "holdout"], default="holdout")
     parser.add_argument(
         "--seed-aggregation",
         choices=["first", "mean"],
@@ -38,9 +36,7 @@ def main() -> int:
     preds = preds[preds["partition"] == args.partition]
     log.info("Running DM batch on %d rows", len(preds))
 
-    results = run_dm_batch(
-        preds, pairs=_PAIRS, seed_aggregation=args.seed_aggregation
-    )
+    results = run_dm_batch(preds, pairs=_PAIRS, seed_aggregation=args.seed_aggregation)
 
     out_dir = config.RESULTS_DIR / "dm_tests"
     out_dir.mkdir(parents=True, exist_ok=True)

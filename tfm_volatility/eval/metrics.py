@@ -24,11 +24,7 @@ def qlike_series(realized_vol: pd.Series, predicted_vol: pd.Series) -> pd.Series
 
 def qlike(realized_vol: pd.Series, predicted_vol: pd.Series) -> float:
     """Mean QLIKE over the (NaN-cleaned) sample."""
-    s = (
-        qlike_series(realized_vol, predicted_vol)
-        .replace([np.inf, -np.inf], np.nan)
-        .dropna()
-    )
+    s = qlike_series(realized_vol, predicted_vol).replace([np.inf, -np.inf], np.nan).dropna()
     return float(s.mean())
 
 

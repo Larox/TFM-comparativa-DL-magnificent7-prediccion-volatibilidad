@@ -42,6 +42,9 @@ ignore = ["E501"]
 # Tests use `pytest.importorskip(...)` before module-level imports
 # to skip the entire file when an optional dependency is missing.
 "tests/*" = ["E402"]
+# Scripts apply warnings filters and matplotlib backend selection before
+# the package imports — that order is intentional.
+"scripts/*" = ["E402"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

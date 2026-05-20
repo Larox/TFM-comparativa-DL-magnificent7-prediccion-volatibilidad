@@ -57,7 +57,22 @@ TFM_FORCE_CPU=1 uv run scripts/04_train_deepar.py
 
 ## Pipeline — Plan 3 (OE3 + OE4)
 
-To be added once Plan 3 is written.
+```bash
+uv run scripts/06_evaluate.py        # QLIKE/MAE/RMSE/MAPE per cell + summary
+uv run scripts/07_dm_tests.py        # Diebold-Mariano + HLN per pair x horizon x scope
+uv run scripts/08_interpret.py       # VSN ranking + attention heatmap (seed 42 by default)
+```
+
+Outputs:
+
+- `results/metrics/metrics_long.parquet` — per (model, ticker, horizon, seed) row
+- `results/metrics/metrics_summary.parquet` + `.md` + `.tex`
+- `results/dm_tests/dm_<partition>_<aggregation>.parquet` + `.csv`
+- `results/interpret/vsn_ranking_seed{S}.parquet`
+- `results/interpret/attention_pooled_seed{S}.npy`
+- `results/figures/*.png`
+
+Copy the figures and tables you want to cite from `results/` into `../master_ai_thesis/memoria/figures/` manually.
 
 ## Layout
 

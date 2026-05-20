@@ -19,8 +19,7 @@ def _toy_preds() -> pd.DataFrame:
                         pred = target + 0.002 * rng.normal()
                         rows.append(
                             {
-                                "date": pd.Timestamp("2025-01-02")
-                                + pd.Timedelta(days=i),
+                                "date": pd.Timestamp("2025-01-02") + pd.Timedelta(days=i),
                                 "ticker": tkr,
                                 "horizon": h,
                                 "prediction": pred,

@@ -45,9 +45,7 @@ def main() -> int:
 
     ckpt = config.REPO_ROOT / "checkpoints" / f"tft_seed{args.seed}.ckpt"
     if not ckpt.exists():
-        raise FileNotFoundError(
-            f"No TFT checkpoint at {ckpt}; run scripts/05_train_tft.py first"
-        )
+        raise FileNotFoundError(f"No TFT checkpoint at {ckpt}; run scripts/05_train_tft.py first")
 
     log.info("Loading checkpoint: %s", ckpt)
     model = load_tft_checkpoint(ckpt)
@@ -72,9 +70,7 @@ def main() -> int:
     interpret_dir.mkdir(parents=True, exist_ok=True)
     figures_dir.mkdir(parents=True, exist_ok=True)
 
-    ranking.to_parquet(
-        interpret_dir / f"vsn_ranking_seed{args.seed}.parquet", index=False
-    )
+    ranking.to_parquet(interpret_dir / f"vsn_ranking_seed{args.seed}.parquet", index=False)
     log.info("Wrote VSN ranking")
 
     loader = predict_ds.to_dataloader(train=False, batch_size=256, num_workers=0)
@@ -87,12 +83,8 @@ def main() -> int:
         else:
             att_avg = att_np.mean(axis=0)
         np.save(interpret_dir / f"attention_pooled_seed{args.seed}.npy", att_avg)
-        fig = plot_attention_heatmap(
-            att_avg, title=f"TFT attention (seed {args.seed})"
-        )
-        fig.savefig(
-            figures_dir / f"attention_pooled_seed{args.seed}.png", dpi=150
-        )
+        fig = plot_attention_heatmap(att_avg, title=f"TFT attention (seed {args.seed})")
+        fig.savefig(figures_dir / f"attention_pooled_seed{args.seed}.png", dpi=150)
         log.info("Wrote attention artifacts")
 
     print(ranking.head(20).to_string(index=False))
