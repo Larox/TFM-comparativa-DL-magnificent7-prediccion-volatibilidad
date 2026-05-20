@@ -3,7 +3,20 @@ name = "tfm-volatility"
 version = "0.1.0"
 description = "TFM — Comparative volatility forecasting on Magnificent 7 (GARCH, DeepAR, TFT)"
 requires-python = ">=3.11,<3.12"
-dependencies = []
+dependencies = [
+    "fredapi>=0.5.2",
+    "matplotlib>=3.8",
+    "numpy>=1.26,<2.0",
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
+    "seaborn>=0.13",
+    "yfinance>=0.2.40",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -25,4 +38,11 @@ testpaths = ["tests"]
 markers = [
     "network: requires internet access (e.g. yfinance, FRED)",
     "slow: long-running tests",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.5",
 ]
