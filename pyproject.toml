@@ -37,6 +37,11 @@ target-version = "py311"
 select = ["E", "F", "I", "W", "UP", "B", "SIM"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tests use `pytest.importorskip(...)` before module-level imports
+# to skip the entire file when an optional dependency is missing.
+"tests/*" = ["E402"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

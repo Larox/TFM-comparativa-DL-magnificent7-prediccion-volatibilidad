@@ -110,9 +110,7 @@ def _fit_and_forecast_for_ticker(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=config.SEED)
-    parser.add_argument(
-        "--config", type=Path, default=config.CONFIGS_DIR / "garch.yaml"
-    )
+    parser.add_argument("--config", type=Path, default=config.CONFIGS_DIR / "garch.yaml")
     args = parser.parse_args()
 
     set_global_seed(args.seed)
@@ -120,9 +118,7 @@ def main() -> int:
 
     snap = _latest_snapshot()
     log.info("Loading snapshot: %s", snap)
-    panel = (
-        pd.read_parquet(snap).sort_values(["ticker", "date"]).reset_index(drop=True)
-    )
+    panel = pd.read_parquet(snap).sort_values(["ticker", "date"]).reset_index(drop=True)
     val_split = _val_split_date(np.array(sorted(panel["date"].unique())))
     log.info("Validation begins at %s", val_split)
 
@@ -136,11 +132,7 @@ def main() -> int:
 
     for partition in ("val", "holdout"):
         slice_df = out_df[out_df["partition"] == partition]
-        out = (
-            config.RESULTS_DIR
-            / "predictions"
-            / f"garch_seed{args.seed}_{partition}.parquet"
-        )
+        out = config.RESULTS_DIR / "predictions" / f"garch_seed{args.seed}_{partition}.parquet"
         save_predictions(slice_df, out)
         log.info("Wrote %s (%d rows)", out, len(slice_df))
 

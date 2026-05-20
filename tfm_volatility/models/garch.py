@@ -80,7 +80,7 @@ def forecast_garch(fit: GarchFit, horizons: list[int]) -> pd.DataFrame:
     max_h = max(horizons)
     fc = fit.fitted.forecast(horizon=max_h, reindex=False)
     variance = fc.variance.values.reshape(-1)  # shape (max_h,), in rescaled units
-    scale_sq = fit.scale ** 2
+    scale_sq = fit.scale**2
     rows = []
     for h in horizons:
         var_h = float(variance[h - 1]) / scale_sq

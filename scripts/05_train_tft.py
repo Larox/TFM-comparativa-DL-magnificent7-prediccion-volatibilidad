@@ -41,12 +41,8 @@ def _val_split_offset(panel: pd.DataFrame) -> int:
     return int(0.8 * dev_times.max()) if len(dev_times) else 0
 
 
-def _emit_predictions(
-    model, predict_ds, panel: pd.DataFrame, *, seed: int
-) -> pd.DataFrame:
-    raw = model.predict(
-        predict_ds, mode="quantiles", return_index=True, return_x=False
-    )
+def _emit_predictions(model, predict_ds, panel: pd.DataFrame, *, seed: int) -> pd.DataFrame:
+    raw = model.predict(predict_ds, mode="quantiles", return_index=True, return_x=False)
     pred_tensor = raw.output  # shape (n_samples, prediction_length, n_quantiles)
     pred_arr = pred_tensor.cpu().numpy() if hasattr(pred_tensor, "cpu") else np.asarray(pred_tensor)
     index_df = raw.index
@@ -89,9 +85,7 @@ def _emit_predictions(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=config.SEED)
-    parser.add_argument(
-        "--config", type=Path, default=config.CONFIGS_DIR / "tft.yaml"
-    )
+    parser.add_argument("--config", type=Path, default=config.CONFIGS_DIR / "tft.yaml")
     parser.add_argument("--max-epochs", type=int, default=None)
     args = parser.parse_args()
 
@@ -114,12 +108,8 @@ def main() -> int:
         target=cfg["target"],
     )
 
-    train_loader = train_ds.to_dataloader(
-        train=True, batch_size=cfg["batch_size"], num_workers=0
-    )
-    val_loader = val_ds.to_dataloader(
-        train=False, batch_size=cfg["batch_size"], num_workers=0
-    )
+    train_loader = train_ds.to_dataloader(train=True, batch_size=cfg["batch_size"], num_workers=0)
+    val_loader = val_ds.to_dataloader(train=False, batch_size=cfg["batch_size"], num_workers=0)
 
     model = build_tft(
         train_ds,
@@ -144,11 +134,7 @@ def main() -> int:
 
     for partition in ("val", "holdout"):
         slice_df = preds[preds["partition"] == partition]
-        out = (
-            config.RESULTS_DIR
-            / "predictions"
-            / f"tft_seed{args.seed}_{partition}.parquet"
-        )
+        out = config.RESULTS_DIR / "predictions" / f"tft_seed{args.seed}_{partition}.parquet"
         save_predictions(slice_df, out)
         log.info("Wrote %s (%d rows)", out, len(slice_df))
 

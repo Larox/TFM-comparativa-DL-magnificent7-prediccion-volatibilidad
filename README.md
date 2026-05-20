@@ -24,7 +24,36 @@ After step 2 the processed snapshot lives at `data/processed/snapshot_<date>.par
 
 ## Pipeline — Plan 2 (OE2: models)
 
-To be added once Plan 2 is written.
+Single seed (default 42):
+
+```bash
+uv run scripts/03_fit_garch.py
+uv run scripts/04_train_deepar.py
+uv run scripts/05_train_tft.py
+```
+
+All three models × three seeds (42, 1337, 2024):
+
+```bash
+./scripts/run_all_models.sh
+```
+
+Outputs:
+
+- `results/predictions/garch_seed{S}_{val|holdout}.parquet`
+- `results/predictions/deepar_seed{S}_{val|holdout}.parquet`
+- `results/predictions/tft_seed{S}_{val|holdout}.parquet`
+- `checkpoints/tft_seed{S}.ckpt` (kept for OE4 interpretability in Plan 3)
+
+All prediction files share the same schema; see `tfm_volatility/models/predictions.py::PREDICTION_COLUMNS`.
+
+### Hardware
+
+Trains on Apple Silicon MPS by default. To force CPU (debugging or MPS op fallbacks):
+
+```bash
+TFM_FORCE_CPU=1 uv run scripts/04_train_deepar.py
+```
 
 ## Pipeline — Plan 3 (OE3 + OE4)
 
