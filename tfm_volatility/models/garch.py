@@ -22,6 +22,7 @@ class GarchFit:
     params: dict[str, float]
     aic_by_distribution: dict[str, float]
     fitted: Any  # underlying arch result object
+    scale: float = 1.0  # arch rescale factor; variance forecasts must be divided by scale**2
 
 
 def fit_best_garch(
@@ -62,20 +63,27 @@ def fit_best_garch(
         params={k: float(v) for k, v in best_res.params.items()},
         aic_by_distribution=aics,
         fitted=best_res,
+        scale=float(getattr(best_res, "scale", 1.0)),
     )
 
 
 def forecast_garch(fit: GarchFit, horizons: list[int]) -> pd.DataFrame:
     """Multi-horizon volatility forecast by iterating 1-step ahead.
 
+    Returns variance and volatility in the original data scale: if `arch` rescaled
+    the inputs by `fit.scale`, the variance forecast is divided by `scale ** 2`
+    so that downstream comparisons against the original-scale realized volatility
+    are valid.
+
     Returns a DataFrame with columns: horizon, predicted_variance, predicted_volatility.
     """
     max_h = max(horizons)
     fc = fit.fitted.forecast(horizon=max_h, reindex=False)
-    variance = fc.variance.values.reshape(-1)  # shape (max_h,)
+    variance = fc.variance.values.reshape(-1)  # shape (max_h,), in rescaled units
+    scale_sq = fit.scale ** 2
     rows = []
     for h in horizons:
-        var_h = float(variance[h - 1])
+        var_h = float(variance[h - 1]) / scale_sq
         rows.append(
             {
                 "horizon": h,
