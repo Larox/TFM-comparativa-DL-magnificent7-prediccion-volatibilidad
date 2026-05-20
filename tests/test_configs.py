@@ -25,3 +25,13 @@ def test_deepar_config_parses_with_expected_fields():
     assert cfg["prediction_length"] == 21
     assert cfg["hidden_size"] == 32
     assert cfg["likelihood"] == "Normal"
+
+
+def test_tft_config_parses_with_expected_fields():
+    cfg = _load("tft.yaml")
+    assert cfg["target"] == "log_rv"
+    assert cfg["encoder_length"] == 60
+    assert cfg["prediction_length"] == 21
+    assert cfg["hidden_size"] == 64
+    assert cfg["attention_head_size"] == 4
+    assert cfg["quantiles"] == [0.1, 0.5, 0.9]
