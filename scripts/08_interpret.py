@@ -22,6 +22,7 @@ from tfm_volatility.interpret.attention import (
     plot_attention_heatmap,
 )
 from tfm_volatility.interpret.vsn import (
+    extract_raw_prediction,
     extract_vsn_weights,
     load_tft_checkpoint,
     rank_features_from_vsn_dict,
@@ -61,8 +62,26 @@ def main() -> int:
     )
 
     device = pick_device()
-    log.info("Extracting VSN weights on device %s", device)
-    vsn_dict = extract_vsn_weights(model, predict_ds, device=device)
+    log.info("Extracting raw predictions on device %s (single pass shared by VSN + attention)", device)
+    raw = extract_raw_prediction(model, predict_ds, device=device)
+
+    log.info("Computing VSN weights (reduction=sum)")
+    vsn_interp = model.interpret_output(raw.output, reduction="sum")
+    vsn_weights = vsn_interp["encoder_variables"].detach().cpu().numpy()
+    feature_names = (
+        vsn_interp.get("encoder_variables_names")
+        or getattr(predict_ds, "encoder_variables", None)
+        or getattr(predict_ds, "reals", None)
+        or []
+    )
+    vsn_dict = {
+        "pooled": {
+            (str(feature_names[i]) if i < len(feature_names) else f"feat_{i}"): float(
+                vsn_weights[i]
+            )
+            for i in range(len(vsn_weights))
+        }
+    }
     ranking = rank_features_from_vsn_dict(vsn_dict)
 
     interpret_dir = config.RESULTS_DIR / "interpret"
@@ -73,19 +92,53 @@ def main() -> int:
     ranking.to_parquet(interpret_dir / f"vsn_ranking_seed{args.seed}.parquet", index=False)
     log.info("Wrote VSN ranking")
 
-    loader = predict_ds.to_dataloader(train=False, batch_size=256, num_workers=0)
-    interp = model.interpret_output(loader, reduction="none")
-    att = interp.get("attention")
+    log.info("Computing attention (reduction=none)")
+    att_interp = model.interpret_output(raw.output, reduction="none")
+    att = att_interp.get("attention")
+    if att is None:
+        att = att_interp.get("decoder_attention")
     if att is not None:
         att_np = att.detach().cpu().numpy()
+        # The shape pytorch-forecasting returns varies across versions:
+        # - (n_samples, n_heads, enc_len, dec_len) -> mean heads then samples -> 2D
+        # - (n_samples, n_heads, enc_len)          -> mean heads then samples -> 1D
+        # - (n_samples, enc_len, dec_len)          -> mean samples -> 2D
+        # - (n_samples, enc_len)                   -> mean samples -> 1D
+        log.info("Raw attention tensor shape: %s", att_np.shape)
         if att_np.ndim == 4:
             att_avg = aggregate_attention_heads(att_np).mean(axis=0)
-        else:
+        elif att_np.ndim == 3:
+            # Either (n, heads, enc) or (n, enc, dec). Detect by checking head count.
+            if att_np.shape[1] <= 8:  # heads are small; dec_len/enc_len bigger
+                att_avg = att_np.mean(axis=(0, 1))  # collapse samples + heads -> (enc,)
+            else:
+                att_avg = att_np.mean(axis=0)  # collapse samples -> (enc, dec)
+        elif att_np.ndim == 2:
             att_avg = att_np.mean(axis=0)
+        else:
+            att_avg = att_np
+
         np.save(interpret_dir / f"attention_pooled_seed{args.seed}.npy", att_avg)
-        fig = plot_attention_heatmap(att_avg, title=f"TFT attention (seed {args.seed})")
+
+        if att_avg.ndim == 2:
+            fig = plot_attention_heatmap(
+                att_avg, title=f"TFT attention (seed {args.seed})"
+            )
+        else:
+            # 1D attention: bar plot over encoder positions (lag importance).
+            import matplotlib.pyplot as plt
+
+            fig, ax = plt.subplots(figsize=(9, 3.5))
+            ax.bar(range(len(att_avg)), att_avg, color="#1f77b4")
+            ax.set_title(f"TFT encoder attention by lag (seed {args.seed})")
+            ax.set_xlabel("Encoder step (0 = most recent)")
+            ax.set_ylabel("Attention weight")
+            fig.tight_layout()
+
         fig.savefig(figures_dir / f"attention_pooled_seed{args.seed}.png", dpi=150)
-        log.info("Wrote attention artifacts")
+        log.info("Wrote attention artifacts (shape %s)", att_avg.shape)
+    else:
+        log.warning("interpret_output() returned no attention tensor; skipping heatmap")
 
     print(ranking.head(20).to_string(index=False))
     return 0

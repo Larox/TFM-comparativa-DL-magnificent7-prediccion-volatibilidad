@@ -18,30 +18,42 @@ def load_tft_checkpoint(checkpoint_path: Path):
     return TemporalFusionTransformer.load_from_checkpoint(str(checkpoint_path))
 
 
+def extract_raw_prediction(model, predict_dataset, *, device: str = "cpu"):
+    """Wrap `model.predict(mode='raw', return_x=True)` to feed `interpret_output`.
+
+    pytorch-forecasting 1.7 requires the raw prediction dict (not a DataLoader)
+    as the input to `interpret_output`.
+    """
+    model = model.to(device).eval()
+    loader = predict_dataset.to_dataloader(train=False, batch_size=256, num_workers=0)
+    return model.predict(loader, mode="raw", return_x=True, return_index=True)
+
+
 def extract_vsn_weights(
     model,
     predict_dataset,
     *,
     device: str = "cpu",
 ) -> dict[str, dict[str, float]]:
-    """Run model.interpret_output() on the prediction dataloader and aggregate.
+    """Run `interpret_output` and return a nested dict {'pooled': {feature: weight}}.
 
-    Returns a nested dict: {ticker_or_'pooled': {feature_name: weight}}.
-    The library aggregates encoder-side variable importances summed over the
-    prediction window.
+    Encoder variable importances are summed over the prediction window by the
+    library; we then map them back to their feature names via the dataset.
     """
-    model = model.to(device).eval()
-    loader = predict_dataset.to_dataloader(train=False, batch_size=256, num_workers=0)
-    interp = model.interpret_output(loader, reduction="sum")
+    raw = extract_raw_prediction(model, predict_dataset, device=device)
+    interp = model.interpret_output(raw.output, reduction="sum")
+
     feature_names = (
         interp.get("encoder_variables_names")
         or getattr(predict_dataset, "encoder_variables", None)
+        or getattr(predict_dataset, "reals", None)
         or []
     )
     weights = interp["encoder_variables"].detach().cpu().numpy()
     out: dict[str, dict[str, float]] = {"pooled": {}}
-    for i, name in enumerate(feature_names):
-        out["pooled"][name] = float(weights[i])
+    for i in range(len(weights)):
+        name = feature_names[i] if i < len(feature_names) else f"feat_{i}"
+        out["pooled"][str(name)] = float(weights[i])
     return out
 
 
