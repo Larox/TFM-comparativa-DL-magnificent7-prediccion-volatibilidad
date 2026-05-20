@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from arch import arch_model
 
@@ -62,3 +63,24 @@ def fit_best_garch(
         aic_by_distribution=aics,
         fitted=best_res,
     )
+
+
+def forecast_garch(fit: GarchFit, horizons: list[int]) -> pd.DataFrame:
+    """Multi-horizon volatility forecast by iterating 1-step ahead.
+
+    Returns a DataFrame with columns: horizon, predicted_variance, predicted_volatility.
+    """
+    max_h = max(horizons)
+    fc = fit.fitted.forecast(horizon=max_h, reindex=False)
+    variance = fc.variance.values.reshape(-1)  # shape (max_h,)
+    rows = []
+    for h in horizons:
+        var_h = float(variance[h - 1])
+        rows.append(
+            {
+                "horizon": h,
+                "predicted_variance": var_h,
+                "predicted_volatility": float(np.sqrt(var_h)),
+            }
+        )
+    return pd.DataFrame(rows)

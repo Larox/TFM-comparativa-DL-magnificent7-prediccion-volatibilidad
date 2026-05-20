@@ -31,3 +31,23 @@ def test_fit_best_garch_picks_min_aic_across_candidates():
     result = fit_best_garch(rets, p=1, q=1, distributions=["normal", "t", "ged"])
     assert result.aic <= max(result.aic_by_distribution.values()) + 1e-9
     assert result.aic == min(result.aic_by_distribution.values())
+
+
+def test_forecast_garch_returns_one_row_per_horizon():
+    from tfm_volatility.models.garch import forecast_garch
+
+    rets = _synthetic_returns()
+    fit = fit_best_garch(rets, p=1, q=1, distributions=["normal", "t"])
+    fc = forecast_garch(fit, horizons=[1, 5, 21])
+    assert set(fc["horizon"]) == {1, 5, 21}
+    assert (fc["predicted_variance"] > 0).all()
+    assert (fc["predicted_volatility"] > 0).all()
+
+
+def test_forecast_garch_volatility_is_sqrt_of_variance():
+    from tfm_volatility.models.garch import forecast_garch
+
+    rets = _synthetic_returns()
+    fit = fit_best_garch(rets, p=1, q=1, distributions=["normal"])
+    fc = forecast_garch(fit, horizons=[1, 5, 21])
+    assert np.allclose(fc["predicted_volatility"], np.sqrt(fc["predicted_variance"]))
