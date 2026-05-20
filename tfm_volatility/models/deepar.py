@@ -7,6 +7,7 @@ unit-testable without performing optimization.
 from __future__ import annotations
 
 import os
+import sys
 
 import torch
 from lightning.pytorch import Trainer
@@ -63,6 +64,10 @@ def build_trainer(
         ),
         LearningRateMonitor(logging_interval="epoch"),
     ]
+    # When stdout is not a TTY (running under nohup / redirected to a log file),
+    # tqdm progress bars produce many MB of redundant lines. Disable the bar in
+    # that case but keep it when running interactively.
+    show_progress = sys.stdout.isatty()
     return Trainer(
         max_epochs=max_epochs,
         accelerator=accelerator,
@@ -71,5 +76,5 @@ def build_trainer(
         callbacks=callbacks,
         default_root_dir=log_dir,
         log_every_n_steps=20,
-        enable_progress_bar=True,
+        enable_progress_bar=show_progress,
     )

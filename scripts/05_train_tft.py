@@ -11,11 +11,21 @@ from __future__ import annotations
 import argparse
 import glob
 import logging
+import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
+
+# Silence the (harmless) sklearn warning that fires once per batch when
+# pytorch-forecasting passes numpy arrays into a StandardScaler that was fitted
+# with a named DataFrame. Issue #1421 of pytorch-forecasting, no numerical impact.
+warnings.filterwarnings(
+    "ignore",
+    message="X does not have valid feature names",
+    category=UserWarning,
+)
 
 from tfm_volatility import config
 from tfm_volatility.data.splits import HOLDOUT_START
