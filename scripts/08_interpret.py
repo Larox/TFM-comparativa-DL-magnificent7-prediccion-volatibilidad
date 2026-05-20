@@ -23,7 +23,6 @@ from tfm_volatility.interpret.attention import (
 )
 from tfm_volatility.interpret.vsn import (
     extract_raw_prediction,
-    extract_vsn_weights,
     load_tft_checkpoint,
     rank_features_from_vsn_dict,
 )
@@ -108,11 +107,11 @@ def main() -> int:
         if att_np.ndim == 4:
             att_avg = aggregate_attention_heads(att_np).mean(axis=0)
         elif att_np.ndim == 3:
-            # Either (n, heads, enc) or (n, enc, dec). Detect by checking head count.
-            if att_np.shape[1] <= 8:  # heads are small; dec_len/enc_len bigger
-                att_avg = att_np.mean(axis=(0, 1))  # collapse samples + heads -> (enc,)
-            else:
-                att_avg = att_np.mean(axis=0)  # collapse samples -> (enc, dec)
+            # Either (n, heads, enc) or (n, enc, dec). Heads are typically <= 8;
+            # encoder/decoder lengths are larger. Collapse accordingly.
+            att_avg = (
+                att_np.mean(axis=(0, 1)) if att_np.shape[1] <= 8 else att_np.mean(axis=0)
+            )
         elif att_np.ndim == 2:
             att_avg = att_np.mean(axis=0)
         else:
