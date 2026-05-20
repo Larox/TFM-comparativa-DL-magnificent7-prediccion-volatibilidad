@@ -16,3 +16,12 @@ def test_garch_config_parses_with_expected_fields():
     assert cfg["mean"] == "Constant"
     assert cfg["distributions"] == ["normal", "t", "ged"]
     assert cfg["rescale"] is True
+
+
+def test_deepar_config_parses_with_expected_fields():
+    cfg = _load("deepar.yaml")
+    assert cfg["target"] == "log_rv"
+    assert cfg["encoder_length"] == 60
+    assert cfg["prediction_length"] == 21
+    assert cfg["hidden_size"] == 32
+    assert cfg["likelihood"] == "Normal"
