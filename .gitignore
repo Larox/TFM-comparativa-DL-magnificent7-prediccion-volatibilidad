@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Venv & uv
+.venv/
+.python-version.local
+
+# Env
+.env
+
+# Data & results (out of git on purpose)
+data/raw/
+data/processed/
+data/splits/
+results/
+checkpoints/
+lightning_logs/
+
+# Notebooks scratch
+notebooks/.ipynb_checkpoints/
+notebooks/*-scratch.ipynb
+
+# OS
+.DS_Store
