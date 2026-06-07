@@ -1,11 +1,14 @@
 # Comparativa de Modelos de Deep Learning para la Predicción de la Volatilidad Realizada del grupo Magnificent 7
 
-Autor: Andres Sebastian Arias Tabango
 Master: Máster Universitario en Inteligencia Artificial
+
 Trabajo fin de estudio presentado por: Andrés Sebastián Arias Tabango
+
 Tipo de trabajo: Tipo 3 – Comparativa de Soluciones
+
 Director/a: Dagoberto Mayorca Torres
-Fecha: 6 de junio
+
+Fecha: 6 de junio de 2026
 
 ---
 
